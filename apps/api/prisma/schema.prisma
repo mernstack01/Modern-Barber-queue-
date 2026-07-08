@@ -1,0 +1,131 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum QueueStatus {
+  WAITING
+  CALLING
+  IN_SERVICE
+  COMPLETED
+  CANCELLED
+}
+
+enum Role {
+  OWNER
+  BARBER
+}
+
+model BarberShop {
+  id           String     @id @default(uuid())
+  name         String
+  phone        String
+  address      String
+  logo         String?
+  workingHours String     @default("09:00 - 20:00")
+  queueSettings Json      @default("{\"defaultEstimatedWait\":20,\"autoPosition\":true}")
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+  deletedAt    DateTime?
+  users        User[]
+  customers    Customer[]
+  queues       Queue[]
+  auditLogs    AuditLog[]
+}
+
+model User {
+  id            String         @id @default(uuid())
+  shopId        String
+  shop          BarberShop     @relation(fields: [shopId], references: [id], onDelete: Cascade)
+  name          String
+  phone         String         @unique
+  password      String
+  role          Role           @default(BARBER)
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  deletedAt     DateTime?
+  profile       Profile?
+  refreshTokens RefreshToken[]
+  auditLogs     AuditLog[]
+
+  @@index([shopId])
+}
+
+model Customer {
+  id        String     @id @default(uuid())
+  shopId    String
+  shop      BarberShop @relation(fields: [shopId], references: [id], onDelete: Cascade)
+  name      String
+  phone     String
+  notes     String?
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  deletedAt DateTime?
+  queues    Queue[]
+
+  @@index([shopId])
+  @@index([phone])
+}
+
+model Queue {
+  id            String      @id @default(uuid())
+  shopId        String
+  shop          BarberShop  @relation(fields: [shopId], references: [id], onDelete: Cascade)
+  customerId    String
+  customer      Customer    @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  service       String
+  estimatedWait Int
+  position      Int
+  status        QueueStatus @default(WAITING)
+  calledAt      DateTime?
+  startedAt     DateTime?
+  finishedAt    DateTime?
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+  deletedAt     DateTime?
+
+  @@index([shopId, status, position])
+  @@index([createdAt])
+}
+
+model Profile {
+  id           String   @id @default(uuid())
+  userId       String   @unique
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  avatar       String?
+  workingHours String   @default("09:00 - 20:00")
+  bio          String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model RefreshToken {
+  id          String    @id @default(uuid())
+  userId      String
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tokenHash   String
+  expiresAt   DateTime
+  revokedAt   DateTime?
+  createdAt   DateTime  @default(now())
+
+  @@index([userId])
+}
+
+model AuditLog {
+  id        String     @id @default(uuid())
+  shopId    String
+  shop      BarberShop @relation(fields: [shopId], references: [id], onDelete: Cascade)
+  userId    String?
+  user      User?      @relation(fields: [userId], references: [id], onDelete: SetNull)
+  action    String
+  entity    String
+  entityId  String?
+  metadata  Json?
+  createdAt DateTime   @default(now())
+
+  @@index([shopId, createdAt])
+}

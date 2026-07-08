@@ -1,0 +1,10 @@
+node_modules
+.next
+dist
+.env
+.env.local
+coverage
+*.tsbuildinfo
+apps/api/prisma/dev.db
+apps/next-fullstack/prisma/dev.db
+apps/next-fullstack/src/generated

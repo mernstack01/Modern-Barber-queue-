@@ -1,0 +1,23 @@
+{
+  "name": "barbers-mnge",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Modern barber queue management system",
+  "packageManager": "pnpm@10.13.1",
+  "scripts": {
+    "dev": "concurrently \"corepack pnpm dev:web\" \"corepack pnpm dev:api\"",
+    "dev:next": "corepack pnpm --filter @barbers/next-fullstack dev",
+    "dev:web": "corepack pnpm --filter @barbers/web dev",
+    "dev:api": "corepack pnpm --filter @barbers/api start:dev",
+    "build:next": "corepack pnpm --filter @barbers/next-fullstack build",
+    "build": "corepack pnpm --filter @barbers/api build && corepack pnpm --filter @barbers/web build",
+    "lint": "corepack pnpm --filter @barbers/api lint && corepack pnpm --filter @barbers/web lint",
+    "prisma:generate": "corepack pnpm --filter @barbers/api prisma:generate",
+    "prisma:migrate": "corepack pnpm --filter @barbers/api prisma:migrate",
+    "db:seed": "corepack pnpm --filter @barbers/api db:seed",
+    "next:db:setup": "corepack pnpm --filter @barbers/next-fullstack db:setup"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2"
+  }
+}
