@@ -1,7 +1,9 @@
 import { PrismaClient } from "../src/generated/prisma";
 import bcrypt from "bcryptjs";
+import { existsSync, mkdirSync } from "node:fs";
+import path from "node:path";
 
-const prisma = new PrismaClient();
+const prisma = new PrismaClient({ datasources: { db: { url: getDatabaseUrl() } } });
 
 const services = ["Classic Cut", "Skin Fade", "Beard Trim", "Fade + Beard", "Kids Cut", "Buzz Cut", "Executive Cut"];
 const firstNames = ["Jasur", "Otabek", "Sardor", "Bekzod", "Timur", "Akmal", "Aziz", "Diyor", "Farrukh", "Kamron"];
@@ -121,6 +123,23 @@ function daysAgo(days: number) {
 
 function addMinutes(date: Date, minutes: number) {
   return new Date(date.getTime() + minutes * 60_000);
+}
+
+function getDatabaseUrl() {
+  const projectRoot = findProjectRoot();
+  const prismaDir = path.join(projectRoot, "prisma");
+  mkdirSync(prismaDir, { recursive: true });
+  return `file:${path.join(prismaDir, "dev.db")}`;
+}
+
+function findProjectRoot() {
+  const cwd = process.cwd();
+  if (existsSync(path.join(cwd, "prisma", "schema.prisma"))) return cwd;
+
+  const workspaceApp = path.join(cwd, "apps", "next-fullstack");
+  if (existsSync(path.join(workspaceApp, "prisma", "schema.prisma"))) return workspaceApp;
+
+  return path.resolve(__dirname, "..");
 }
 
 main()
